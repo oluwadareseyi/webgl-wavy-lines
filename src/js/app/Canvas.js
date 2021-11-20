@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import * as dat from "dat.gui";
+import fragmentShader from "../shaders/fragment.glsl";
+import vertexShader from "../shaders/vertex.glsl";
 
 export default class Canvas {
   constructor() {
@@ -26,7 +28,7 @@ export default class Canvas {
       0.1,
       100
     );
-    this.camera.position.set(0.25, -0.25, 1);
+    this.camera.position.set(0, 0, 1);
     this.scene.add(this.camera);
   }
 
@@ -38,6 +40,7 @@ export default class Canvas {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     this.controls = new OrbitControls(this.camera, this.canvas);
+    this.controls.enabled = false;
     this.controls.enableDamping = true;
   }
 
@@ -46,7 +49,13 @@ export default class Canvas {
     this.geometry = new THREE.PlaneGeometry(1, 1, 100, 100);
 
     // Material
-    this.material = new THREE.MeshBasicMaterial();
+    this.material = new THREE.ShaderMaterial({
+      uniforms: {
+        uTime: { value: 0.0 },
+      },
+      fragmentShader,
+      vertexShader,
+    });
 
     // Mesh
     this.mesh = new THREE.Mesh(this.geometry, this.material);
@@ -66,8 +75,11 @@ export default class Canvas {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   }
 
-  render() {
+  render(time) {
     this.controls.update();
+
+    // time
+    this.material.uniforms.uTime.value = time;
 
     // Render
     this.renderer.render(this.scene, this.camera);
